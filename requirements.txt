@@ -1,0 +1,4 @@
+Flask==3.1.0
+Flask_Limiter==3.10.1
+numpy==2.2.2
+vaderSentiment==3.3.2
