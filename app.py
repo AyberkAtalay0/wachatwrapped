@@ -146,7 +146,9 @@ def wrapped():
     result = {}
 
     try:
-        data = request.get_json()
+        print(str(request.data)[:20])
+
+        data = request.get_json(force=True)
         chat = data.get("chat")
         raw = chat.split("\n")[1:]
 
