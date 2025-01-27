@@ -124,6 +124,39 @@ def get_most_used_words(data):
     most_common_words = word_counts.most_common(5)
     return most_common_words
 
+def get_messages_with_timestamps(data, owner):
+    messages = []
+    for line in data:
+        splitted_data = line.split(":")
+        if owner in "".join(splitted_data[:2]) and len(splitted_data) > 1:
+            timestamp = line.split()[1]  # Zaman damgasını al
+            message = splitted_data[2].removesuffix("\n").strip()
+            messages.append((timestamp, message))
+    return messages
+
+def calculate_average_response_time(data, owner, names):
+    user_messages = get_messages_with_timestamps(data, owner)
+    
+    other_messages = []
+    for name in names:
+        if name != owner: other_messages.extend(get_messages_with_timestamps(data, name))
+
+    response_times = []
+    for i, (user_time, _) in enumerate(user_messages[:-1]):
+        next_user_time = user_messages[i + 1][0]
+        
+        for other_time, _ in other_messages:
+            if other_time > user_time and other_time < next_user_time:
+                user_hour, user_minute = map(int, user_time.split(":"))
+                other_hour, other_minute = map(int, other_time.split(":"))
+                user_time_in_minutes = user_hour * 60 + user_minute
+                other_time_in_minutes = other_hour * 60 + other_minute
+                response_time = other_time_in_minutes - user_time_in_minutes
+                response_times.append(response_time)
+                break
+                
+    return np.mean(response_times) if response_times else None
+
 from flask import Flask, request, jsonify
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -190,6 +223,9 @@ def wrapped():
 
             most_used_words = get_most_used_words(messages)
             result[name]["most_used_words"] = most_used_words
+
+            avg_response_time = calculate_average_response_time(raw, name, names)
+            result[name]["avg_response_time"] = avg_response_time
 
         return jsonify({"result": result}), 200
     except:
