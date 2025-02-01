@@ -198,12 +198,17 @@ def wrapped():
 def sentiment():
     try:
         data = request.get_json()
-        text = data.get("text")
-        polarity = get_polarity(text)
-        return jsonify({"polarity": polarity}), 200
-    except:
+        texts = data.get("texts")
+        
+        if not isinstance(texts, list):
+            return jsonify({"error": "Input should be an array of texts"}), 400
+        
+        polarities = [get_polarity(text) for text in texts]
+        
+        return jsonify({"polarities": polarities}), 200
+    except Exception as e:
         traceback.print_exc()
-        return jsonify({"error": str(0)}), 500
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, threaded=True)
