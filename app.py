@@ -86,7 +86,7 @@ def get_hours_by_owner(data, owner):
 
 def get_polarity(text):
     global analyzer
-    _score = analyzer.polarity_scores(remove_emojis(text))
+    return analyzer.polarity_scores(remove_emojis(text))
 
 def get_sentiment_array(data):
     _sentiments = []
@@ -199,7 +199,6 @@ def sentiment():
     try:
         data = request.get_json()
         text = data.get("text")
-        text = remove_emojis(text)
         polarity = get_polarity(text)
         return jsonify({"polarity": polarity}), 200
     except:
